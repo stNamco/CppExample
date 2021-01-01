@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 plugins {
     id( "com.android.library")
     kotlin("multiplatform")
+    kotlin("native.cocoapods")
 }
 
 android {
@@ -27,35 +28,54 @@ dependencies {
     commonTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 }
 
+// CocoaPods requires the podspec to have a version.
+version = "1.0"
+
 kotlin {
 
     val ktorVersion = "1.4.0"
     val coroutinesVersion = "1.3.9-native-mt"
     val serializationVersion = "1.0.0-RC"
 
-    android("android")
+    android()
 
-    ios {
-        binaries {
-            framework {
-                baseName = "SharedCode"
-            }
+    iosArm64()
+    iosX64()
+
+    cocoapods {
+        ios.deploymentTarget = "13.5"
+        summary = "CocoaPods test library"
+        homepage = "https://github.com/JetBrains/kotlin"
+
+        pod("AFNetworking") {
+            version = "~> 4.0.1"
         }
     }
 
-    sourceSets["commonMain"].dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-        implementation("io.ktor:ktor-client-core:$ktorVersion")
-        implementation("io.ktor:ktor-client-serialization:$ktorVersion")
+    val commonMain by sourceSets.getting {
+        dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+            implementation("io.ktor:ktor-client-core:$ktorVersion")
+            implementation("io.ktor:ktor-client-serialization:$ktorVersion")
+        }
     }
 
-    sourceSets["androidMain"].dependencies {
-        implementation("io.ktor:ktor-client-android:$ktorVersion")
+    val androidMain by sourceSets.getting {
+        dependencies {
+            implementation("io.ktor:ktor-client-android:$ktorVersion")
+        }
     }
 
-    sourceSets["iosMain"].dependencies {
-        implementation("io.ktor:ktor-client-ios:$ktorVersion")
+    val iosX64Main by sourceSets.getting {
+        dependencies {
+            implementation("io.ktor:ktor-client-ios:$ktorVersion")
+        }
+    }
+    val iosArm64Main by sourceSets.getting {
+        dependencies {
+            implementation("io.ktor:ktor-client-ios:$ktorVersion")
+        }
     }
 }
 
